@@ -40,7 +40,7 @@ public class CheatCodeUI : MonoBehaviour
             List<object> values = CheatCode.GetFieldValueByCheatCode(cheatCode, out fieldType);
             values.ForEach(value =>
             {
-                _output.text += (string.IsNullOrEmpty(_output.text) ? "" : "\n") + $"Index {values.IndexOf(value)} - {fieldType}: {value}";
+                _output.text += (string.IsNullOrEmpty(_output.text) ? "" : "\n") + $"Index {values.IndexOf(value)} - {fieldType}: {value.ToJsonFormat()}";
             });
             _verticleScrollBar.value = 0;
             return;

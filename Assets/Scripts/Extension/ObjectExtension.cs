@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Globalization;
 using System.ComponentModel;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +16,7 @@ public static class ObjectExtension
         {
             bindingAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         }
-        FieldInfo fieldInfo = type.GetField("coin", bindingAttr);
+        FieldInfo fieldInfo = type.GetField(fieldName, bindingAttr);
         if (fieldInfo == null)
         {
             Debug.LogError($"Can't Find Field Name: {fieldName}");
@@ -32,7 +34,7 @@ public static class ObjectExtension
         {
             invokeAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         }
-        FieldInfo fieldInfo = type.GetField("coin", invokeAttr);
+        FieldInfo fieldInfo = type.GetField(fieldName, invokeAttr);
         if(fieldInfo == null)
         {
             Debug.LogError($"Can't Find Field Name: {fieldName}");
@@ -40,14 +42,30 @@ public static class ObjectExtension
         }
         TypeConverter typeConverter = TypeDescriptor.GetConverter(fieldInfo.FieldType);
         object value = null;
-        try
+        List<Type> types = fieldInfo.FieldType.GetInterfaces().ToList();
+        if(types.Contains(typeof(ICollection)))
         {
-            value = typeConverter.ConvertFromString(valueString);
+            try
+            {
+                value = valueString.ToObject(fieldInfo.FieldType);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex);
+                return false;
+            }
         }
-        catch(Exception ex1)
+        else
         {
-            Debug.LogError(ex1);
-            return false;
+            try
+            {
+                value = typeConverter.ConvertFromString(valueString);
+            }
+            catch(Exception ex1)
+            {
+                Debug.LogError(ex1);
+                return false;
+            }
         }
         try
         {

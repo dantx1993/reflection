@@ -20,13 +20,42 @@ public class ReflectionDemo : MonoBehaviour
             //     Debug.Log($"{fieldType}: {value}");
             //     instanceObject.SetFieldValue("coin", "1000");
             // });
-            Type fieldTypeRef;
-            var result = GetFieldValueByCheatCode("Player.coin", out fieldTypeRef);
-            result.ForEach(value =>
+            // Type fieldTypeRef;
+            // var result = GetFieldValueByCheatCode("Player.coin", out fieldTypeRef);
+            // result.ForEach(value =>
+            // {
+            //     Debug.Log($"{fieldTypeRef}: {value}");
+            // });
+            // SetFieldValueByCheatCode("Player.coin 1000");
+            // bool check;
+            // AnalyzedCheatCode analyzedCheatCode = CheatCode.AnalysisCheatCode("[GO][Player1.GetComponent<Player>.checks<0>].GetValue()", out check);
+            // if(!check)
+            // {
+            //     Debug.Log("Wrong Cheat Code");
+            // }
+            // Debug.Log(analyzedCheatCode.ToJsonFormat());
+            // Dictionary<string, int> myDict = new Dictionary<string, int>();
+            // Debug.Log(myDict.GetType().GetGenericArguments().ToJsonFormat());
+
+            List<object> instances = ReflectionStorage.GetObjects(typeof(Test));
+            if (instances == null || instances.Count <= 0)
             {
-                Debug.Log($"{fieldTypeRef}: {value}");
+                Debug.LogError($"Can't Find Any Binding Instance of {typeof(Test)}");
+                return;
+            }
+
+            Debug.Log(instances.Count);
+
+            instances.ForEach(instance =>
+            {
+                Type type;
+                object value = instance.GetFieldValue("myList", out type);
+                Debug.Log(value.ToJsonFormat());
             });
-            SetFieldValueByCheatCode("Player.coin 1000");
+
+            Test test = new Test();
+            Type type1;
+            Debug.Log(test.GetFieldValue("test", out type1));
         }
     }
 

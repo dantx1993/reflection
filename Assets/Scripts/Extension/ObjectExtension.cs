@@ -27,7 +27,7 @@ public static class ObjectExtension
         typeOfObject = fieldInfo.FieldType;
         return value;
     }
-    public static bool SetFieldValue(this object thisObject, string fieldName, string valueString, BindingFlags invokeAttr = BindingFlags.Default, Binder binder = null, CultureInfo culture = null)
+    public static bool SetFieldValue(this object thisObject, string fieldName, string valueString, string keyString = "", BindingFlags invokeAttr = BindingFlags.Default, Binder binder = null, CultureInfo culture = null)
     {
         Type type = thisObject.GetType();
         if(invokeAttr == BindingFlags.Default)
@@ -41,22 +41,85 @@ public static class ObjectExtension
             return false;
         }
         TypeConverter typeConverter = TypeDescriptor.GetConverter(fieldInfo.FieldType);
+        object key = null;
         object value = null;
         List<Type> types = fieldInfo.FieldType.GetInterfaces().ToList();
         if(types.Contains(typeof(ICollection)))
         {
-            try
+            
+            if(string.IsNullOrEmpty(keyString))
             {
-                value = valueString.ToObject(fieldInfo.FieldType);
+                try
+                {
+                    value = valueString.ToObject(fieldInfo.FieldType);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError(ex);
+                    return false;
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Debug.LogError(ex);
-                return false;
+                Type[] arguments = fieldInfo.FieldType.GetGenericArguments();
+                if (types.Contains(typeof(IDictionary)))
+                {
+                    Type keyType = arguments[0];
+                    typeConverter = TypeDescriptor.GetConverter(arguments[1]);
+                    try
+                    {
+                        key = Convert.ChangeType(keyString, keyType);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError(ex);
+                        return false;
+                    }
+                    if (!(fieldInfo.GetValue(thisObject) as IDictionary).Contains(key))
+                    {
+                        Debug.LogError($"Not Contains {key} in {fieldName}");
+                        return false;
+                    }
+                    value = typeConverter.ConvertFromString(valueString);
+                }
+                else
+                {
+                    try
+                    {
+                        key = Int32.Parse(keyString);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError(ex);
+                        return false;
+                    }
+                    if(arguments.Length > 0)
+                    {
+                        typeConverter = TypeDescriptor.GetConverter(arguments[0]);
+                    }
+                    else
+                    {
+                        Type elementType = fieldInfo.FieldType.GetElementType();
+                        if(elementType != null)
+                        {
+                            typeConverter = TypeDescriptor.GetConverter(elementType);
+                        }
+                        else
+                        {
+                            Debug.Log("Something is Wrong");
+                        }
+                    }
+                    value = typeConverter.ConvertFromString(valueString);
+                }
             }
         }
         else
         {
+            if(!string.IsNullOrEmpty(keyString))
+            {
+                Debug.LogError("Field isn't Collection");
+                return false;
+            }
             try
             {
                 value = typeConverter.ConvertFromString(valueString);
@@ -69,13 +132,65 @@ public static class ObjectExtension
         }
         try
         {
-            fieldInfo.SetValue(thisObject, value, invokeAttr, binder, culture);
+            if (!string.IsNullOrEmpty(keyString))
+            {
+                if(types.Contains(typeof(ICollection)))
+                {
+                    if (types.Contains(typeof(IDictionary)))
+                    {
+                        var dictionary = (IDictionary)fieldInfo.GetValue(thisObject);
+                        dictionary[key] = value;
+                    }
+                    else
+                    {
+                        var array = (IList)fieldInfo.GetValue(thisObject);
+                        array[(int)key] = value;
+                    }
+                }
+            }
+            else
+            {
+                fieldInfo.SetValue(thisObject, value, invokeAttr, binder, culture);
+            }
         }
         catch(Exception ex2)
         {
             Debug.LogError(ex2);
             return false;
         }
+        return true;
+    }
+
+    public static bool SetValue(this object thisObject, string valueString)
+    {
+        Type type = thisObject.GetType();
+        object value = null;
+        List<Type> interfaces = type.GetInterfaces().ToList();
+        if (interfaces.Contains(typeof(ICollection)))
+        {
+            try
+            {
+                value = valueString.ToObject(type);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex);
+                return false;
+            }
+        }
+        else
+        {
+            try
+            {
+                thisObject = Convert.ChangeType(valueString, type);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex);
+                return false;
+            }
+        }
+        Debug.Log(thisObject.ToJsonFormat());
         return true;
     }
 }

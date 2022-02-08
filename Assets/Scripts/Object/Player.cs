@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     [SerializeField] private List<int> checks = new List<int>();
     [SerializeField] private int[] checks1;
     private Dictionary<int, int> checkMap = new Dictionary<int, int>();
+    [SerializeField] private Test test;
 
     private void Awake() 
     {
@@ -36,5 +37,35 @@ public class Player : MonoBehaviour
         {
             checks1[i] = Random.Range(1, 10);
         }
+        for (int i = 0; i < count; i++)
+        {
+            checkMap.Add(i, Random.Range(1, 5));
+        }
+        test = new Test();
+    }
+}
+
+[System.Serializable]
+public class Test
+{
+    public List<int> myList = new List<int>();
+    public Dictionary<string, int> myDict = new Dictionary<string, int>();
+    public int number;
+
+    public Test()
+    {
+        number = 100;
+        myList.Add(3);
+        myList.Add(2);
+        myList.Add(1);
+        myDict.Add("Dan1", 10);
+        myDict.Add("Dan2", 10);
+        ReflectionStorage.Bind(this);
+    }
+    
+
+    ~Test()
+    {
+        ReflectionStorage.Unbind(this);
     }
 }

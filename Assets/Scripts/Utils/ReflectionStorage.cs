@@ -13,6 +13,7 @@ public class ReflectionStorage
         {
             Storage.Add(myObject.GetType(), new List<object>());
         }
+        if(Storage[myObject.GetType()].Contains(myObject)) return;
         Storage[myObject.GetType()].Add(myObject);
     }
     public static void Unbind(object myObject)

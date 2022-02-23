@@ -37,25 +37,25 @@ public class ReflectionDemo : MonoBehaviour
             // Dictionary<string, int> myDict = new Dictionary<string, int>();
             // Debug.Log(myDict.GetType().GetGenericArguments().ToJsonFormat());
 
-            List<object> instances = ReflectionStorage.GetObjects(typeof(Test));
-            if (instances == null || instances.Count <= 0)
-            {
-                Debug.LogError($"Can't Find Any Binding Instance of {typeof(Test)}");
-                return;
-            }
+            // List<object> instances = ReflectionStorage.GetObjects(typeof(Test));
+            // if (instances == null || instances.Count <= 0)
+            // {
+            //     Debug.LogError($"Can't Find Any Binding Instance of {typeof(Test)}");
+            //     return;
+            // }
 
-            Debug.Log(instances.Count);
+            // Debug.Log(instances.Count);
 
-            instances.ForEach(instance =>
-            {
-                Type type;
-                object value = instance.GetFieldValue("myList", out type);
-                Debug.Log(value.ToJsonFormat());
-            });
+            // instances.ForEach(instance =>
+            // {
+            //     Type type;
+            //     object value = instance.GetFieldValue("myList", out type);
+            //     Debug.Log(value.ToJsonFormat());
+            // });
 
-            Test test = new Test();
-            Type type1;
-            Debug.Log(test.GetFieldValue("test", out type1));
+            // Test test = new Test();
+            // Type type1;
+            // Debug.Log(test.GetFieldValue("test", out type1));
         }
     }
 

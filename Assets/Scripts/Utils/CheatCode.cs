@@ -55,19 +55,11 @@ public class CheatCode
             Debug.Log($"Can't Find Type ({type}) in Project");
             return result;
         }
-        List<object> instances = ReflectionStorage.GetObjects(type);
-        if (instances == null || instances.Count <= 0)
-        {
-            Debug.LogError($"Can't Find Any Binding Instance of {type}");
-            return null;
-        }
 
-        instances.ForEach(instance =>
-        {
-            resultComponent.resultScharpObjects.Add(instance);
-        });
-        Debug.Log(resultComponent.resultScharpObjects.Count);
-        Debug.Log(resultComponent.resultScharpObjects[0].GetType());
+
+        resultComponent.resultCsharpObject = type.GetStaticField(cheatCode.fields[0], out resultComponent.resultType);
+        Debug.Log(resultComponent.resultType + ": " + resultComponent.resultCsharpObject.ToJsonFormat());
+        startIndex = 1;
 
     StartCheatCode:
 
@@ -438,7 +430,7 @@ public class CheatCode
 
 
 
-    public static AnalyzedCheatCode AnalysisCheatCode(string cheatCode, out bool check)
+    public static AnalyzedCheatCode AnalysisCheatCode(string cheatCode, AnalyzedCheatCode.ECommandType commandType, out bool check)
     {
         check = true;
         AnalyzedCheatCode result = new AnalyzedCheatCode();
@@ -450,22 +442,16 @@ public class CheatCode
         // analyzedPattern = @"\[(.*?)\]";
         analyzedPattern = @"\G\[(.*?[^\[]*?)\]";
         analyzedMatches = Regex.Matches(cheatCode, analyzedPattern, options);
-        if(analyzedMatches.Count != 2)
+        if(analyzedMatches.Count != 1)
         {
             Debug.LogError("Wrong CheatCode");
             check = false;
             return result;
         }
-        result.SetCommand(analyzedMatches[0].Groups[1].Value.Replace(" ", ""));
-        if(result.commandType == AnalyzedCheatCode.ECommandType.NONE)
-        {
-            Debug.LogError("Wrong CheatCode");
-            check = false;
-            return result;
-        }
+        result.commandType = commandType;
 
         // GameObject, Component, Field:
-        string listFieldString = analyzedMatches[1].Groups[1].Value;
+        string listFieldString = analyzedMatches[0].Groups[1].Value;
         string fieldPattern;
         MatchCollection fieldMatches;
         fieldPattern = @"([^\.][a-zA-Z0-9{}\[\]|\\;:'""<>,\/!@#$%^&*()_?+=]+)";
@@ -486,7 +472,7 @@ public class CheatCode
         string methodPattern;
         MatchCollection methodMatches;
         
-        methodPattern = @"\.GetValue\(\)";
+        methodPattern = @"\.Get\(\)";
         
         methodMatches = Regex.Matches(cheatCode, methodPattern, options);
         if(methodMatches.Count <= 0)
@@ -497,7 +483,7 @@ public class CheatCode
                 check = false;
                 return result;
             }
-            methodPattern = @"\.SetValue\((.*?)\)";
+            methodPattern = @"\.Set\((.*?)\)";
             methodMatches = Regex.Matches(cheatCode, methodPattern, options);
             if (methodMatches.Count != 1)
             {
@@ -851,7 +837,7 @@ public class CheatCode
         string pattern;
         RegexOptions options = RegexOptions.Multiline;
         MatchCollection matchs;
-        pattern = @"(\bGetComponent\b)";
+        pattern = @"(\bGet\b)";
         matchs = Regex.Matches(field, pattern, options);
         if (matchs.Count > 1)
         {
@@ -864,7 +850,7 @@ public class CheatCode
         }
         else if (matchs.Count <= 0)
         {
-            pattern = @"(\bGetComponentInChildren\b)";
+            pattern = @"(\bGetChild\b)";
             matchs = Regex.Matches(field, pattern, options);
             if (matchs.Count > 1)
             {
@@ -981,7 +967,7 @@ public class AnalyzedCheatCode
     public void SetMethod(string method)
     {
         this.method = method;
-        string pattern = @"\.SetValue";
+        string pattern = @"\.Set";
         RegexOptions options = RegexOptions.Multiline;
         MatchCollection matches = Regex.Matches(method, pattern, options);
         if (matches.Count > 0)
@@ -989,7 +975,7 @@ public class AnalyzedCheatCode
             methodType = EMethodType.SETVALUE;
             return;
         }
-        pattern = @"\.GetValue";
+        pattern = @"\.Get";
         matches = Regex.Matches(method, pattern, options);
         if (matches.Count > 0)
         {

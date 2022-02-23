@@ -9,6 +9,27 @@ using UnityEngine;
 
 public static class ObjectExtension
 {
+    public static object GetStaticField(this Type thisType, string fieldName, out Type typeOfObject, BindingFlags bindingAttr = BindingFlags.Static)
+    {
+        if (bindingAttr == BindingFlags.Static)
+        {
+            bindingAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        }
+
+        FieldInfo fieldInfo = thisType.GetField(fieldName, bindingAttr);
+
+        if (fieldInfo == null)
+        {
+            Debug.LogError($"Can't Find Field Name: {fieldName}");
+            typeOfObject = null;
+            return null;
+        }
+
+        var value = fieldInfo.GetValue(null);
+        typeOfObject = fieldInfo.FieldType;
+        return value;
+    }
+
     public static object GetFieldValue(this object thisObject, string fieldName, out Type typeOfObject, BindingFlags bindingAttr = BindingFlags.Default)
     {
         Type type = thisObject.GetType();

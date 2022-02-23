@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public class StorageUserInfo
+{
+    private static int testInt = 100;
+    private static Test myTest = new Test();
+}
+
 public class Player : MonoBehaviour
 {
     [SerializeField] private float maxHealth;
@@ -41,7 +47,6 @@ public class Player : MonoBehaviour
         {
             checkMap.Add(i, Random.Range(1, 5));
         }
-        // test = new Test();
     }
 }
 
@@ -54,20 +59,12 @@ public class Test
 
     public Test()
     {
-        Debug.LogWarning("Contruction");
         number = 100;
         myList.Add(3);
         myList.Add(2);
         myList.Add(1);
         myDict.Add("Dan1", 10);
         myDict.Add("Dan2", 10);
-        // ReflectionStorage.Bind(this);
     }
-    
-
-    ~Test()
-    {
-        Debug.LogWarning("Destruction");
-        // ReflectionStorage.Unbind(this);
-    }
+ 
 }
